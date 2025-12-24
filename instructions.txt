@@ -1,0 +1,43 @@
+Instructions on how to use the code:
+
+    Install Dependencies:
+        Make sure you have Node.js and npm installed.
+        Run npm install ethers to install the necessary ethers library.
+
+    Configuration:
+        Network Configuration: The NETWORKS object contains configurations for different Ethereum Virtual Machine (EVM) networks (Ethereum, Base, Sepolia). You can extend this to other networks by adding their respective chain IDs, RPC URLs, and native currency details.
+        Token Configuration: The TOKENS object contains configurations for the USDO and TWUSD tokens on different networks. Crucially, you must replace the placeholder addresses (0xUSDO_CONTRACT_ADDRESS, 0xTWUSD_CONTRACT_ADDRESS, etc.) with the actual contract addresses of these tokens on the respective networks. Note the different decimal places for USDO (18) and TWUSD (6).
+
+    Wallet Setup:
+        MetaMask: The code supports connecting to MetaMask. Ensure MetaMask is installed in your browser. The connectMetaMask() function handles the connection.
+        Creating a New Wallet: The createNewWallet() function generates a new Ethereum wallet (an EOA - Externally Owned Account) client-side. Important: The private key and mnemonic are generated in the browser. You must implement secure storage for these. Never store them in plain text.
+        Importing a Wallet: The importWalletFromPrivateKey() function allows you to import an existing wallet using its private key. Again, handle the private key with extreme care.
+
+    Blockchain Interactions:
+        Read-Only Mode: You can initialize the wallet in read-only mode using initializeReadOnly(). This allows you to fetch token balances without connecting a wallet (useful for displaying balances of any address).
+        Fetching Balances: The getUSDOBalance() and getTWUSDBalance() functions retrieve the balances of the specified tokens. If no address is provided, it fetches the balance of the connected wallet.
+        Transferring Tokens: The sendUSDO() and sendTWUSD() functions transfer tokens to a recipient address. You must be connected to a wallet to use these functions. The code includes gas estimation with a buffer.
+        Switching Networks: The switchNetwork() function allows you to switch between different EVM networks. For MetaMask, it will prompt the user to switch networks.
+
+    Example Usage:
+        The exampleReadOnlyMode(), exampleMetaMaskConnection(), exampleCreateWallet(), and exampleMultiNetwork() functions demonstrate how to use the wallet in different scenarios. Uncomment the calls to these functions in the main() function to run the examples.
+
+    Security Considerations:
+        Private Key Management: This is the most critical aspect. The example code generates and handles private keys in the browser. For production use, you must implement secure key storage and management. Consider using hardware wallets or secure enclave-based solutions.
+        Transaction Security: Always verify recipient addresses before sending transactions. Implement transaction amount limits to prevent accidental large transfers.
+        Network Security: Use HTTPS RPC endpoints to prevent man-in-the-middle attacks. Validate contract addresses before interacting with them.
+        User Interface Security: Display clear transaction confirmations to the user, including gas fees and total costs.
+
+    Deployment:
+        After installing dependencies and replacing placeholder addresses, you can run the code using a TypeScript compiler (e.g., tsc or ts-node).
+        Test thoroughly on testnets (e.g., Sepolia, Base Goerli) before deploying to mainnet.
+        Consider a security audit before deploying to production.
+
+Important Notes:
+
+    This code is a basic example and should not be used in production without thorough security review and implementation of proper security measures.
+    The code assumes the availability of a global window.ethereum object when connecting to MetaMask. This is standard for browser-based wallets but may not be available in all environments.
+    Error handling should be improved for production use. The current error handling is basic and may not catch all potential errors.
+    Consider using a more robust state management solution (e.g., React Context, Redux) for managing wallet state in a real-world application.
+    The gas limit buffer (20%) may need to be adjusted depending on the network and the complexity of the transaction.
+    Always keep your dependencies up to date to benefit from security patches and bug fixes.

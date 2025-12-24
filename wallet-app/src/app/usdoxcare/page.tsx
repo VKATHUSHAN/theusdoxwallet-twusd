@@ -1,6 +1,8 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function USDOXCarePage() {
   return (
@@ -9,11 +11,13 @@ export default function USDOXCarePage() {
       <header className="sticky top-0 z-50 backdrop-blur-lg bg-gray-950/90 border-b border-gray-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <a href="/" className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-4">
               <div className="w-16 h-16 transition-transform hover:scale-110">
-                <img 
+                <Image 
                   src="https://raw.githubusercontent.com/theusdox/theusdoxwallet-twusd/main/wallet-app/public/usdoxcare-logo.png"
                   alt="USDOXCare Logo"
+                  width={64}
+                  height={64}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -21,14 +25,14 @@ export default function USDOXCarePage() {
                 <h1 className="text-xl font-semibold">USDOXCare</h1>
                 <p className="text-sm text-gray-400 hidden sm:block">Ecosystem Stewardship</p>
               </div>
-            </a>
+            </Link>
           </div>
           
           <nav className="hidden md:flex space-x-8">
-            <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
-            <a href="/about" className="text-gray-300 hover:text-white transition">About</a>
-            <a href="/usdoxcare" className="text-white font-semibold">USDOXCare</a>
-            <a href="/twusd-tokenomics" className="text-gray-300 hover:text-white transition">TWUSD</a>
+            <Link href="/" className="text-gray-300 hover:text-white transition">Home</Link>
+            <Link href="/about" className="text-gray-300 hover:text-white transition">About</Link>
+            <Link href="/usdoxcare" className="text-white font-semibold">USDOXCare</Link>
+            <Link href="/twusd-tokenomics" className="text-gray-300 hover:text-white transition">TWUSD</Link>
           </nav>
         </div>
       </header>
@@ -36,11 +40,15 @@ export default function USDOXCarePage() {
       <main className="max-w-4xl mx-auto px-6 py-24 space-y-10">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <img 
-              src="https://raw.githubusercontent.com/theusdox/theusdoxwallet-twusd/main/wallet-app/public/usdoxcare-logo.png"
-              alt="USDOXCare Logo"
-              className="w-32 h-32 object-contain"
-            />
+            <div className="w-32 h-32">
+              <Image 
+                src="https://raw.githubusercontent.com/theusdox/theusdoxwallet-twusd/main/wallet-app/public/usdoxcare-logo.png"
+                alt="USDOXCare Logo"
+                width={128}
+                height={128}
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">USDOXCare Organization</h1>
           <p className="text-xl text-gray-400">
@@ -48,7 +56,7 @@ export default function USDOXCarePage() {
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-xl p-8 border border-purple-700/40">
+        <div className="bg-linear-to-br from-purple-900/30 to-blue-900/30 rounded-xl p-8 border border-purple-700/40">
           <p className="text-lg text-gray-300 leading-relaxed">
             USDOXCare is the organizational and responsibility initiative supporting
             the TheUSDOX ecosystem. Its mission is to promote transparency, long-term
@@ -113,7 +121,7 @@ export default function USDOXCarePage() {
           </div>
         </section>
 
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 border border-gray-700 mt-12">
+        <div className="bg-linear-to-br from-gray-900 to-gray-800 rounded-xl p-8 border border-gray-700 mt-12">
           <h2 className="text-2xl font-bold mb-4 text-center">Commitment to Transparency</h2>
           <p className="text-gray-300 text-center leading-relaxed">
             Every decision, every allocation, and every principle is documented and verifiable.
@@ -138,10 +146,10 @@ export default function USDOXCarePage() {
               © {new Date().getFullYear()} USDOX Ecosystem. All rights reserved.
             </p>
             <div className="flex justify-center space-x-6">
-              <a href="/" className="text-gray-400 hover:text-white transition">Home</a>
-              <a href="/about" className="text-gray-400 hover:text-white transition">About</a>
-              <a href="/usdoxcare" className="text-gray-400 hover:text-white transition">USDOXCare</a>
-              <a href="/twusd-tokenomics" className="text-gray-400 hover:text-white transition">TWUSD</a>
+              <Link href="/" className="text-gray-400 hover:text-white transition">Home</Link>
+              <Link href="/about" className="text-gray-400 hover:text-white transition">About</Link>
+              <Link href="/usdoxcare" className="text-gray-400 hover:text-white transition">USDOXCare</Link>
+              <Link href="/twusd-tokenomics" className="text-gray-400 hover:text-white transition">TWUSD</Link>
             </div>
           </div>
         </div>

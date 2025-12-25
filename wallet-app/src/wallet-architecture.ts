@@ -1,445 +1,338 @@
 /**
-
- * USDOX Ecosystem Wallet Architecture
-
- * 
-
- * A secure, non-custodial EVM wallet architecture for the USDOX ecosystem supporting:
-
- * - USDO (main ecosystem token) 
-
- * - TWUSD (TheUSDOX Wrapped Dollar) with 6 decimals
-
- * 
-
+ * USDOX Ecosystem Wallet Architecture (Simplified, Clean Version)
+ *
+ * Non-custodial EVM wallet architecture for the USDOX ecosystem supporting:
+ * - USDO (18 decimals)
+ * - TWUSD (6 decimals)
+ *
  * Features:
-
  * - Wallet creation (EOA)
-
- * - MetaMask and WalletConnect compatibility
-
+ * - MetaMask connection
  * - Balance fetching and ERC-20 transfers
-
  * - Read-only public mode
-
- * - Multi-network support (Ethereum, Base, etc.)
-
+ * - Multi-network support (Ethereum, Base, Sepolia)
  * - Client-side key management only
-
- * 
-
- * Security: No custodial features, keys remain client-side, transparent and auditable
-
  */
 
-
-import { 
-
-  Contract, 
-
-  formatUnits, 
-
-  JsonRpcProvider, 
-
-  parseUnits, 
-
-  Wallet, 
-
-  TransactionResponse,
-
+import {
+  Contract,
+  formatUnits,
+  JsonRpcProvider,
+  parseUnits,
+  Wallet,
   BrowserProvider,
-
-  Signer
-
+  Signer,
+  isAddress,
+  getAddress,
+  type TransactionResponse,
 } from 'ethers';
-
 
 // ============= CONFIGURATION =============
 
-
-interface NetworkConfig {
-
+export interface NetworkConfig {
   chainId: number;
-
   name: string;
-
   rpcUrl: string;
-
   nativeCurrency: {
-
     name: string;
-
     symbol: string;
-
     decimals: number;
-
   };
-
 }
 
-
-interface TokenConfig {
-
+export interface TokenConfig {
   address: string;
-
   decimals: number;
-
   symbol: string;
-
   name: string;
-
 }
-
 
 // Network configurations - easily extensible to other EVM networks
-
-const NETWORKS: Record<string, NetworkConfig> = {
-
+export const NETWORKS: Record<string, NetworkConfig> = {
   ethereum: {
-
     chainId: 1,
-
     name: 'Ethereum Mainnet',
-
     rpcUrl: 'https://ethereum-rpc.publicnode.com',
-
-    nativeCurrency: {
-
-      name: 'Ethereum',
-
-      symbol: 'ETH',
-
-      decimals: 18
-
-    }
-
+    nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
   },
-
   base: {
-
     chainId: 8453,
-
     name: 'Base',
-
     rpcUrl: 'https://mainnet.base.org',
-
-    nativeCurrency: {
-
-      name: 'Ethereum',
-
-      symbol: 'ETH',
-
-      decimals: 18
-
-    }
-
+    nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
   },
-
   sepolia: {
-
     chainId: 11155111,
-
     name: 'Sepolia Testnet',
-
     rpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com',
-
-    nativeCurrency: {
-
-      name: 'Ethereum',
-
-      symbol: 'ETH',
-
-      decimals: 18
-
-    }
-
-  }
-
-};
-
-
-// Token configurations per network
-
-const TOKENS: Record<string, Record<string, TokenConfig>> = {
-
-  ethereum: {
-
-    USDO: {
-
-      address: '0xUSDO_CONTRACT_ADDRESS', // Replace with actual USDO contract address
-
-      decimals: 18,
-
-      symbol: 'USDO',
-
-      name: 'USDO Token'
-
-    },
-
-    TWUSD: {
-
-      address: '0xTWUSD_CONTRACT_ADDRESS', // Replace with actual TWUSD contract address
-
-      decimals: 6, // Important: TWUSD uses 6 decimals
-
-      symbol: 'TWUSD',
-
-      name: 'TheUSDOX Wrapped Dollar'
-
-    }
-
+    nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
   },
-
-  base: {
-
-    USDO: {
-
-      address: '0xUSDO_CONTRACT_ADDRESS_BASE', // Replace with Base USDO contract address
-
-      decimals: 18,
-
-      symbol: 'USDO',
-
-      name: 'USDO Token'
-
-    },
-
-    TWUSD: {
-
-      address: '0xTWUSD_CONTRACT_ADDRESS_BASE', // Replace with Base TWUSD contract address
-
-      decimals: 6,
-
-      symbol: 'TWUSD',
-
-      name: 'TheUSDOX Wrapped Dollar'
-
-    }
-
-  }
-
 };
 
+// Token configurations per network (replace placeholders before production)
+export const TOKENS: Record<string, Record<string, TokenConfig>> = {
+  ethereum: {
+    USDO: {
+      address: '0xUSDO_CONTRACT_ADDRESS', // Replace with actual USDO contract address
+      decimals: 18,
+      symbol: 'USDO',
+      name: 'USDO Token',
+    },
+    TWUSD: {
+      address: '0xTWUSD_CONTRACT_ADDRESS', // Replace with actual TWUSD contract address
+      decimals: 6, // Important: TWUSD uses 6 decimals
+      symbol: 'TWUSD',
+      name: 'TheUSDOX Wrapped Dollar',
+    },
+  },
+  base: {
+    USDO: {
+      address: '0xUSDO_CONTRACT_ADDRESS_BASE', // Replace with Base USDO contract address
+      decimals: 18,
+      symbol: 'USDO',
+      name: 'USDO Token',
+    },
+    TWUSD: {
+      address: '0xTWUSD_CONTRACT_ADDRESS_BASE', // Replace with Base TWUSD contract address
+      decimals: 6,
+      symbol: 'TWUSD',
+      name: 'TheUSDOX Wrapped Dollar',
+    },
+  },
+  sepolia: {
+    USDO: {
+      address: '0xUSDO_CONTRACT_ADDRESS_SEPOLIA', // Replace with Sepolia USDO contract address
+      decimals: 18,
+      symbol: 'USDO',
+      name: 'USDO Token',
+    },
+    TWUSD: {
+      address: '0xTWUSD_CONTRACT_ADDRESS_SEPOLIA', // Replace with Sepolia TWUSD contract address
+      decimals: 6,
+      symbol: 'TWUSD',
+      name: 'TheUSDOX Wrapped Dollar',
+    },
+  },
+};
 
-// Standard ERC-20 ABI
-
+// Standard ERC-20 ABI (subset)
 const ERC20_ABI = [
-
   'function balanceOf(address account) view returns (uint256)',
-
   'function transfer(address to, uint256 amount) returns (bool)',
-
   'function decimals() view returns (uint8)',
-
   'function symbol() view returns (string)',
-
   'function name() view returns (string)',
-
   'function totalSupply() view returns (uint256)',
-
   'function allowance(address owner, address spender) view returns (uint256)',
-
   'function approve(address spender, uint256 amount) returns (bool)',
-
-  'event Transfer(address indexed from, address indexed to, uint256 value)'
-
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
 ];
-
 
 // ============= CORE WALLET ARCHITECTURE =============
 
-
 /**
-
- * Blockchain Interaction Layer
-
- * Handles all blockchain operations and provider management
-
+ * Blockchain Interaction Layer - handles operations and provider management
  */
-
 class BlockchainService {
-
   private provider: JsonRpcProvider | BrowserProvider | null = null;
-
   private signer: Signer | null = null;
-
   private currentNetwork: string = 'ethereum';
 
-
-  /**
-
-   * Initialize read-only provider for public mode
-
-   */
-
   async initializeReadOnlyProvider(network: string = 'ethereum'): Promise<void> {
-
     const networkConfig = NETWORKS[network];
-
-    if (!networkConfig) {
-
-      throw new Error(`Unsupported network: ${network}`);
-
-    }
-
-
+    if (!networkConfig) throw new Error(`Unsupported network: ${network}`);
     this.provider = new JsonRpcProvider(networkConfig.rpcUrl);
-
     this.currentNetwork = network;
-
-    console.log(`Initialized read-only provider for ${networkConfig.name}`);
-
   }
-
-
-  /**
-
-   * Connect to MetaMask wallet
-
-   */
 
   async connectMetaMask(): Promise<string> {
-
     if (typeof window === 'undefined' || !(window as any).ethereum) {
-
       throw new Error('MetaMask not detected. Please install MetaMask.');
-
     }
-
-
-    try {
-
-      // Request account access
-
-      await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-
-      
-
-      // Create browser provider
-
-      this.provider = new BrowserProvider((window as any).ethereum);
-
-      this.signer = await this.provider.getSigner();
-
-      
-
-      const address = await this.signer.getAddress();
-
-      console.log(`Connected to MetaMask: ${address}`);
-
-      
-
-      return address;
-
-    } catch (error) {
-
-      console.error('Failed to connect to MetaMask:', error);
-
-      throw error;
-
-    }
-
+    await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+    this.provider = new BrowserProvider((window as any).ethereum);
+    this.signer = await this.provider.getSigner();
+    return await this.signer.getAddress();
   }
-
-
-  /**
-
-   * Create new EOA wallet (client-side only)
-
-   */
 
   createWallet(): { address: string; privateKey: string; mnemonic: string } {
-
     const wallet = Wallet.createRandom();
-
-    
-
-    console.log('Created new wallet (KEEP PRIVATE KEY SECURE!)');
-
-    console.log(`Address: ${wallet.address}`);
-
-    
-
     return {
-
       address: wallet.address,
-
       privateKey: wallet.privateKey,
-
-      mnemonic: wallet.mnemonic?.phrase || ''
-
+      mnemonic: wallet.mnemonic?.phrase || '',
     };
-
   }
-
-
-  /**
-
-   * Import wallet from private key
-
-   */
 
   async importWalletFromPrivateKey(privateKey: string, network: string = 'ethereum'): Promise<string> {
-
     const networkConfig = NETWORKS[network];
-
-    if (!networkConfig) {
-
-      throw new Error(`Unsupported network: ${network}`);
-
-    }
-
-
+    if (!networkConfig) throw new Error(`Unsupported network: ${network}`);
     this.provider = new JsonRpcProvider(networkConfig.rpcUrl);
-
     this.signer = new Wallet(privateKey, this.provider);
-
     this.currentNetwork = network;
-
-    
-
-    const address = await this.signer.getAddress();
-
-    console.log(`Imported wallet: ${address}`);
-
-    
-
-    return address;
-
+    return await this.signer.getAddress();
   }
-
-
-  /**
-
-   * Get current wallet address
-
-   */
 
   async getWalletAddress(): Promise<string> {
-
-    if (!this.signer) {
-
-      throw new Error('No wallet connected');
-
-    }
-
+    if (!this.signer) throw new Error('No wallet connected');
     return await this.signer.getAddress();
-
   }
 
-
-  /**
-
-   * Get token balance
-
-   */
-
   async getTokenBalance(tokenSymbol: string, walletAddress?: string): Promise<string> {
+    if (!this.provider) throw new Error('Provider not initialized');
+    const tokenConfig = TOKENS[this.currentNetwork]?.[tokenSymbol];
+    if (!tokenConfig) throw new Error(`Token ${tokenSymbol} not supported on ${this.currentNetwork}`);
+    if (!isAddress(tokenConfig.address)) {
+      throw new Error(`Token address for ${tokenSymbol} on ${this.currentNetwork} is not configured or invalid.`);
+    }
+    let address = walletAddress;
+    if (!address && this.signer) address = await this.signer.getAddress();
+    if (!address) throw new Error('No wallet address provided');
+    // Normalize checksum
+    address = getAddress(address);
+    const contract = new Contract(tokenConfig.address, ERC20_ABI, this.provider);
+    const balance = (await contract.balanceOf(address)) as bigint;
+    return formatUnits(balance, tokenConfig.decimals);
+  }
 
-    if (!this.provider) {
+  async transferToken(tokenSymbol: string, recipientAddress: string, amount: string): Promise<string> {
+    if (!this.signer) throw new Error('No wallet connected');
+    const tokenConfig = TOKENS[this.currentNetwork]?.[tokenSymbol];
+    if (!tokenConfig) throw new Error(`Token ${tokenSymbol} not supported on ${this.currentNetwork}`);
+    if (!isAddress(tokenConfig.address)) {
+      throw new Error(`Token address for ${tokenSymbol} on ${this.currentNetwork} is not configured or invalid.`);
+    }
+    const recipient = getAddress(recipientAddress);
+    const contract = new Contract(tokenConfig.address, ERC20_ABI, this.signer);
+    const senderAddress = await this.signer.getAddress();
+    const balance = (await contract.balanceOf(senderAddress)) as bigint;
+    const amountInTokenUnits = parseUnits(amount, tokenConfig.decimals);
+    if (balance < amountInTokenUnits) {
+      const formattedBalance = formatUnits(balance, tokenConfig.decimals);
+      throw new Error(`Insufficient ${tokenSymbol} balance. Required: ${amount}, Available: ${formattedBalance}`);
+    }
+    const gasEstimate = await contract.transfer.estimateGas(recipient, amountInTokenUnits);
+    const gasLimit = (gasEstimate * 120n) / 100n; // 20% buffer
+    const tx: TransactionResponse = await contract.transfer(recipient, amountInTokenUnits, { gasLimit });
+    const receipt = await tx.wait();
+    if (!receipt) throw new Error('Transaction receipt is null');
+    return tx.hash;
+  }
 
-      throw new Error('Provider not initialized');
+  async switchNetwork(network: string): Promise<void> {
+    const networkConfig = NETWORKS[network];
+    if (!networkConfig) throw new Error(`Unsupported network: ${network}`);
+    if (this.signer && (typeof window !== 'undefined') && (window as any).ethereum) {
+      try {
+        await (window as any).ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: `0x${networkConfig.chainId.toString(16)}` }],
+        });
+      } catch (error: any) {
+        if (error.code === 4902) {
+          await (window as any).ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: `0x${networkConfig.chainId.toString(16)}`,
+              chainName: networkConfig.name,
+              rpcUrls: [networkConfig.rpcUrl],
+              nativeCurrency: networkConfig.nativeCurrency,
+            }],
+          });
+        } else {
+          throw error;
+        }
+      }
+    } else {
+      this.provider = new JsonRpcProvider(networkConfig.rpcUrl);
+      if (this.signer && 'privateKey' in this.signer) {
+        this.signer = new Wallet((this.signer as any).privateKey, this.provider);
+      }
+    }
+    this.currentNetwork = network;
+  }
 
+  getCurrentNetwork(): string {
+    return this.currentNetwork;
+  }
+
+  disconnect(): void {
+    this.signer = null;
+    this.provider = null;
+  }
+}
+
+/**
+ * Wallet UI Layer - orchestrates operations for components
+ */
+class USDOXWallet {
+  private blockchainService: BlockchainService;
+  private isConnected: boolean = false;
+  private walletAddress: string | null = null;
+
+  constructor() {
+    this.blockchainService = new BlockchainService();
+  }
+
+  async initializeReadOnly(network: string = 'ethereum'): Promise<void> {
+    await this.blockchainService.initializeReadOnlyProvider(network);
+  }
+
+  async connectMetaMask(): Promise<string> {
+    this.walletAddress = await this.blockchainService.connectMetaMask();
+    this.isConnected = true;
+    return this.walletAddress;
+  }
+
+  createNewWallet(): { address: string; privateKey: string; mnemonic: string } {
+    const walletData = this.blockchainService.createWallet();
+    return walletData;
+  }
+
+  async importWallet(privateKey: string, network: string = 'ethereum'): Promise<string> {
+    this.walletAddress = await this.blockchainService.importWalletFromPrivateKey(privateKey, network);
+    this.isConnected = true;
+    return this.walletAddress;
+  }
+
+  async getUSDOBalance(walletAddress?: string): Promise<string> {
+    return await this.blockchainService.getTokenBalance('USDO', walletAddress);
+  }
+
+  async getTWUSDBalance(walletAddress?: string): Promise<string> {
+    return await this.blockchainService.getTokenBalance('TWUSD', walletAddress);
+  }
+
+  async sendUSDO(recipientAddress: string, amount: string): Promise<string> {
+    if (!this.isConnected) throw new Error('Wallet not connected');
+    return await this.blockchainService.transferToken('USDO', recipientAddress, amount);
+  }
+
+  async sendTWUSD(recipientAddress: string, amount: string): Promise<string> {
+    if (!this.isConnected) throw new Error('Wallet not connected');
+    return await this.blockchainService.transferToken('TWUSD', recipientAddress, amount);
+  }
+
+  async switchNetwork(network: string): Promise<void> {
+    await this.blockchainService.switchNetwork(network);
+  }
+
+  getWalletStatus(): { isConnected: boolean; address: string | null; network: string } {
+    return {
+      isConnected: this.isConnected,
+      address: this.walletAddress,
+      network: this.blockchainService.getCurrentNetwork(),
+    };
+  }
+
+  disconnect(): void {
+    this.blockchainService.disconnect();
+    this.isConnected = false;
+    this.walletAddress = null;
+  }
+}
+
+export { USDOXWallet, BlockchainService, NETWORKS, TOKENS };
     }
 
 
@@ -1254,9 +1147,10 @@ async function main(): Promise<void> {
 }
 
 
-// Execute main function
-
-main().catch(console.error);
+// Execute main function (Node-only, opt-in via env)
+if (typeof window === 'undefined' && process.env.RUN_WALLET_DEMO === 'true') {
+  main().catch(console.error);
+}
 
 
 // Export for use in other modules

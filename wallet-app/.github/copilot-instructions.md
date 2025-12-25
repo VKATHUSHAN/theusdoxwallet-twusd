@@ -1,108 +1,140 @@
-# AI Copilot Instructions - USDOX Wallet App
+---
+description: "GitHub Copilot Instructions for USDOX Wallet App - Non-custodial EVM wallet with MetaMask integration"
+---
 
-## Project Overview
+# USDOX Wallet App - Copilot Instructions
 
-A non-custodial EVM wallet application for the USDOX ecosystem. Supports multi-network blockchain interactions (Ethereum, Base, Sepolia) with client-side key management. Features MetaMask integration, wallet creation, and ERC-20 token transfers (USDO, TWUSD).
+## Quick Overview
 
-## Architecture
+Non-custodial EVM wallet for USDOX ecosystem. Supports Ethereum, Base, Sepolia with MetaMask integration and ERC-20 token transfers (USDO, TWUSD).
 
-### Core Layers (see `src/wallet-architecture.ts`)
+## Architecture Pattern
 
-1. **BlockchainService** - Provider/signer management, multi-network support, wallet creation
-2. **TokenManager** - ERC-20 token interactions (balance, transfer, approval)
-3. **USDOXWallet** - Public API wrapper combining blockchain + token operations
+```
+BlockchainService (ethers.js)
+  ↓
+TokenManager (ERC-20 contracts)
+  ↓
+USDOXWallet (Public API)
+  ↓
+React Components ("use client")
+```
 
-### Design Patterns
-
-- **Non-custodial only**: All keys remain client-side; never store or transmit private keys to backend
-- **Multi-network extensibility**: Add networks via `NETWORKS` and `TOKENS` config objects (currently: Ethereum, Base, Sepolia)
-- **Dual mode**: Read-only public mode (`initializeReadOnly()`) + MetaMask/private key import modes
-- **ERC-20 standard**: Uses ethers.js Contract interface with minimal ABI (balanceOf, transfer, approve)
-
-### Token Specifics
-
-- **TWUSD**: 6 decimals (special case - most tokens use 18)
-- **USDO**: 18 decimals
-- Contract addresses are placeholders in config - replace with actual addresses per network
+**Key principle**: All private keys stay client-side. No backend key storage.
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 + React 19 (with "use client" for wallet components)
-- **Web3**: ethers.js v6 (not v5 - uses ES modules, different imports)
-- **Styling**: Tailwind CSS 4
-- **Linting**: ESLint 9 (with Next.js config)
-- **Type Safety**: TypeScript strict mode
+- **Next.js 16** + React 19 ("use client" components)
+- **ethers.js v6** (ES modules, not v5)
+- **TypeScript strict mode**
+- **Tailwind CSS 4**
+- **ESLint 9**
 
-## Development Workflow
+## Critical Code Patterns
 
-### Setup
+### 1. Initialize Wallet in Components
+
+```typescript
+"use client";
+import { USDOXWallet } from "@/wallet-architecture";
+
+export default function WalletComponent() {
+  const [wallet, setWallet] = useState<USDOXWallet | null>(null);
+
+  useEffect(() => {
+    const w = new USDOXWallet();
+    w.initializeReadOnly();
+    setWallet(w);
+  }, []);
+  // ...
+}
+```
+
+### 2. MetaMask Connection Pattern
+
+```typescript
+const handleConnectMetaMask = async () => {
+  if (typeof window !== "undefined" && (window as any).ethereum) {
+    try {
+      const address = await wallet.connectMetaMask();
+      setWalletAddress(address);
+    } catch (error) {
+      console.error("MetaMask connection failed:", error);
+    }
+  }
+};
+```
+
+### 3. Token Amount Handling (CRITICAL)
+
+- Pass amounts as **STRINGS** to wallet methods
+- TWUSD uses **6 decimals** (most tokens use 18)
+- Conversions: `parseUnits(amount, decimals)` and `formatUnits(balance, decimals)`
+
+```typescript
+const balance = await wallet.getUSDOBalance(address); // Returns formatted string
+const txHash = await wallet.sendTWUSD(recipient, "100"); // Pass amount as string
+```
+
+### 4. Network Configuration
+
+Edit in `src/wallet-architecture.ts`:
+
+```typescript
+const NETWORKS: Record<string, NetworkConfig> = {
+  ethereum: { chainId: 1, rpcUrl: '...', ... },
+  base: { chainId: 8453, rpcUrl: '...', ... },
+  sepolia: { chainId: 11155111, rpcUrl: '...', ... }
+};
+
+const TOKENS: Record<string, Record<string, TokenConfig>> = {
+  ethereum: {
+    USDO: { address: '0x...', decimals: 18, ... },
+    TWUSD: { address: '0x...', decimals: 6, ... }
+  }
+};
+```
+
+## Development Commands
 
 ```bash
 npm install
-npm run dev  # Runs on http://localhost:3000
+npm run dev          # localhost:3000
+npm run build
+npm run lint
+vercel --prod        # Deploy to Vercel
 ```
 
-### Build & Deployment
+## Important Configuration Tasks
 
-```bash
-npm run build      # Creates optimized production build
-npm start         # Runs production server locally
-vercel --prod     # Deploy to Vercel (team ID in .env)
-```
+1. **Replace placeholder token addresses** in `NETWORKS` and `TOKENS` objects
+2. **Set contract addresses** before mainnet deployment
+3. **Use Sepolia chain** for testing without mainnet funds
+4. **Consider upgrading RPC nodes** from public to private for production
 
-### Linting
+## File Map
 
-```bash
-npm run lint      # Check code style
-```
+- `src/wallet-architecture.ts` - Core logic (~1300 lines): BlockchainService, TokenManager, USDOXWallet
+- `src/app/page.tsx` - UI example with state management
+- `src/app/layout.tsx` - Root layout and metadata
+- `tsconfig.json` - Path alias: `@/*` → `./src/*`
 
-## Key Patterns & Conventions
+## Error Handling Checklist
 
-### UI Components (React Client Components)
+- ✅ Check `window.ethereum` exists before MetaMask calls
+- ✅ Verify network chainId matches NETWORKS config
+- ✅ Wrap blockchain calls in try-catch
+- ✅ Handle 429 rate limit errors from public RPCs
+- ✅ Validate recipient address format before sending tokens
 
-- Use `"use client"` directive at top of page.tsx components
-- Wrap wallet operations in `useState` + `useEffect` for state management
-- Always wrap blockchain calls in try-catch for error handling
-- Import wallet from path alias: `import { USDOXWallet } from '@/wallet-architecture'`
+## Token Decimal Note
 
-### Wallet Operations Flow
+**TWUSD is unique with 6 decimals** - most ERC-20s use 18. This affects all amount calculations.
 
-1. **Initialize**: Create USDOXWallet instance, call `initializeReadOnly()` in useEffect
-2. **Connect**: Call `connectMetaMask()` (browser-dependent, check window.ethereum)
-3. **Query**: Use `getUSDOBalance()`, `getTWUSDBalance()` with wallet address
-4. **Send**: Call `sendUSDO()` or `sendTWUSD()` with recipient + amount (string, not BigInt)
+## When Adding Features
 
-### Amount Handling
-
-- Always pass amounts as **strings** to wallet methods (decimals handled internally via formatUnits/parseUnits)
-- TWUSD amounts: multiply by 10^6 when constructing transactions
-- Use `parseUnits(amount, decimals)` and `formatUnits(balance, decimals)` for conversions
-
-### Error Scenarios
-
-- **No MetaMask**: Check `typeof window !== 'undefined' && (window as any).ethereum`
-- **Unsupported network**: Verify chain ID matches NETWORKS config before operation
-- **Rate limits**: Handle 429 responses from public RPC endpoints with retry logic
-- **Invalid token address**: Placeholder addresses in config will fail - replace before production
-
-## Configuration Points
-
-- **Networks**: Add/modify in `NETWORKS` object (chainId, rpcUrl, nativeCurrency)
-- **Tokens**: Add/modify in `TOKENS` object per network
-- **Contract addresses**: Replace placeholder `0xUSDO_CONTRACT_ADDRESS` values
-- **RPC endpoints**: Currently using public nodes (consider private nodes for production)
-
-## Project-Specific Considerations
-
-1. **No backend**: This is a frontend-only wallet - all state is client-side
-2. **Public RPC nodes**: Not ideal for production (rate limits, reduced reliability) - plan to upgrade
-3. **MetaMask required for signing**: Current implementation requires MetaMask for transactions (WalletConnect support noted as future feature)
-4. **Testnet available**: Use Sepolia chain config for testing without mainnet funds
-
-## Useful File References
-
-- `src/wallet-architecture.ts` - Core wallet logic (~1300 lines, read for blockchain/token patterns)
-- `src/app/page.tsx` - Main UI example (state management, wallet integration patterns)
-- `src/app/layout.tsx` - Root layout (metadata, font setup)
-- `package.json` - Dependencies and scripts
-- `.env` - Environment variables (Vercel team config)
+1. Extend `NETWORKS` or `TOKENS` objects for new networks/tokens
+2. Add methods to `BlockchainService` or `TokenManager`
+3. Expose through `USDOXWallet` public API
+4. Use "use client" in React components calling wallet methods
+5. Always handle window/MetaMask availability checks

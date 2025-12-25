@@ -1,5 +1,5 @@
 ---
-description: "GitHub Copilot Instructions for USDOX Wallet App - Non-custodial EVM wallet with MetaMask integration"
+description: GitHub Copilot Instructions for USDOX Wallet App
 ---
 
 # USDOX Wallet App - Copilot Instructions
@@ -46,7 +46,6 @@ export default function WalletComponent() {
     w.initializeReadOnly();
     setWallet(w);
   }, []);
-  // ...
 }
 ```
 
@@ -69,11 +68,11 @@ const handleConnectMetaMask = async () => {
 
 - Pass amounts as **STRINGS** to wallet methods
 - TWUSD uses **6 decimals** (most tokens use 18)
-- Conversions: `parseUnits(amount, decimals)` and `formatUnits(balance, decimals)`
+- Use `parseUnits(amount, decimals)` and `formatUnits(balance, decimals)`
 
 ```typescript
-const balance = await wallet.getUSDOBalance(address); // Returns formatted string
-const txHash = await wallet.sendTWUSD(recipient, "100"); // Pass amount as string
+const balance = await wallet.getUSDOBalance(address);
+const txHash = await wallet.sendTWUSD(recipient, "100");
 ```
 
 ### 4. Network Configuration
@@ -89,8 +88,8 @@ const NETWORKS: Record<string, NetworkConfig> = {
 
 const TOKENS: Record<string, Record<string, TokenConfig>> = {
   ethereum: {
-    USDO: { address: '0x...', decimals: 18, ... },
-    TWUSD: { address: '0x...', decimals: 6, ... }
+    USDO: { address: '0x...', decimals: 18 },
+    TWUSD: { address: '0x...', decimals: 6 }
   }
 };
 ```
@@ -105,36 +104,39 @@ npm run lint
 vercel --prod        # Deploy to Vercel
 ```
 
-## Important Configuration Tasks
+## Configuration Tasks
 
-1. **Replace placeholder token addresses** in `NETWORKS` and `TOKENS` objects
-2. **Set contract addresses** before mainnet deployment
-3. **Use Sepolia chain** for testing without mainnet funds
-4. **Consider upgrading RPC nodes** from public to private for production
+1. Replace placeholder token addresses in NETWORKS and TOKENS
+2. Set contract addresses before mainnet deployment
+3. Use Sepolia chain for testing
+4. Upgrade RPC nodes from public to private for production
 
 ## File Map
 
-- `src/wallet-architecture.ts` - Core logic (~1300 lines): BlockchainService, TokenManager, USDOXWallet
+- `src/wallet-architecture.ts` - Core logic (1300 lines)
 - `src/app/page.tsx` - UI example with state management
-- `src/app/layout.tsx` - Root layout and metadata
+- `src/app/layout.tsx` - Root layout
 - `tsconfig.json` - Path alias: `@/*` → `./src/*`
 
-## Error Handling Checklist
+## Error Handling
 
-- ✅ Check `window.ethereum` exists before MetaMask calls
-- ✅ Verify network chainId matches NETWORKS config
-- ✅ Wrap blockchain calls in try-catch
-- ✅ Handle 429 rate limit errors from public RPCs
-- ✅ Validate recipient address format before sending tokens
+- Check `window.ethereum` exists before MetaMask calls
+- Verify network chainId matches NETWORKS config
+- Wrap blockchain calls in try-catch
+- Handle 429 rate limit errors from public RPCs
+- Validate recipient address format
 
-## Token Decimal Note
+## Important Notes
 
-**TWUSD is unique with 6 decimals** - most ERC-20s use 18. This affects all amount calculations.
+- TWUSD has 6 decimals (most ERC-20s use 18)
+- All private keys stay client-side only
+- No backend wallet storage
+- MetaMask required for transaction signing
 
 ## When Adding Features
 
-1. Extend `NETWORKS` or `TOKENS` objects for new networks/tokens
-2. Add methods to `BlockchainService` or `TokenManager`
-3. Expose through `USDOXWallet` public API
-4. Use "use client" in React components calling wallet methods
-5. Always handle window/MetaMask availability checks
+1. Extend NETWORKS or TOKENS for new networks/tokens
+2. Add methods to BlockchainService or TokenManager
+3. Expose through USDOXWallet public API
+4. Use "use client" in React components
+5. Always check window/MetaMask availability

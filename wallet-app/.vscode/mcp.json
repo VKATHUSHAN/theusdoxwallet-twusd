@@ -1,0 +1,26 @@
+{
+	"servers": {
+		"io.github.github/github-mcp-server": {
+			"type": "http",
+			"url": "https://api.githubcopilot.com/mcp/",
+			"headers": {
+				"Authorization": "${input:Authorization}"
+			}
+		},
+		"my-mcp-server-bc1bd1cd": {
+			"type": "stdio",
+			"command": "npm",
+			"args": [
+				"run"
+			]
+		}
+	},
+	"inputs": [
+		{
+			"id": "Authorization",
+			"type": "promptString",
+			"description": "Authentication token (PAT or App token)",
+			"password": true
+		}
+	]
+}

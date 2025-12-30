@@ -1,6 +1,8 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function TWUSDTokenomicsPage() {
   return (
@@ -9,11 +11,13 @@ export default function TWUSDTokenomicsPage() {
       <header className="sticky top-0 z-50 backdrop-blur-lg bg-gray-950/90 border-b border-gray-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <a href="/" className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-4">
               <div className="w-16 h-16 transition-transform hover:scale-110">
-                <img 
+                <Image 
                   src="https://raw.githubusercontent.com/theusdox/theusdoxwallet-twusd/main/wallet-app/public/TWUSD-logo.png"
                   alt="TWUSD Logo"
+                  width={64}
+                  height={64}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -21,14 +25,14 @@ export default function TWUSDTokenomicsPage() {
                 <h1 className="text-xl font-semibold">TWUSD</h1>
                 <p className="text-sm text-gray-400 hidden sm:block">Wrapped Dollar</p>
               </div>
-            </a>
+            </Link>
           </div>
           
           <nav className="hidden md:flex space-x-8">
-            <a href="/" className="text-gray-300 hover:text-white transition">Home</a>
-            <a href="/about" className="text-gray-300 hover:text-white transition">About</a>
-            <a href="/usdoxcare" className="text-gray-300 hover:text-white transition">USDOXCare</a>
-            <a href="/twusd-tokenomics" className="text-white font-semibold">TWUSD</a>
+            <Link href="/" className="text-gray-300 hover:text-white transition">Home</Link>
+            <Link href="/about" className="text-gray-300 hover:text-white transition">About</Link>
+            <Link href="/usdoxcare" className="text-gray-300 hover:text-white transition">USDOXCare</Link>
+            <Link href="/twusd-tokenomics" className="text-white font-semibold">TWUSD</Link>
           </nav>
         </div>
       </header>
@@ -36,9 +40,11 @@ export default function TWUSDTokenomicsPage() {
       <main className="max-w-4xl mx-auto px-6 py-24 space-y-10">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-6">
-            <img 
+            <Image 
               src="https://raw.githubusercontent.com/theusdox/theusdoxwallet-twusd/main/wallet-app/public/TWUSD-logo.png"
               alt="TWUSD Logo"
+              width={128}
+              height={128}
               className="w-32 h-32 object-contain"
             />
           </div>
@@ -181,10 +187,10 @@ export default function TWUSDTokenomicsPage() {
               © {new Date().getFullYear()} USDOX Ecosystem. All rights reserved.
             </p>
             <div className="flex justify-center space-x-6">
-              <a href="/" className="text-gray-400 hover:text-white transition">Home</a>
-              <a href="/about" className="text-gray-400 hover:text-white transition">About</a>
-              <a href="/usdoxcare" className="text-gray-400 hover:text-white transition">USDOXCare</a>
-              <a href="/twusd-tokenomics" className="text-gray-400 hover:text-white transition">TWUSD</a>
+              <Link href="/" className="text-gray-400 hover:text-white transition">Home</Link>
+              <Link href="/about" className="text-gray-400 hover:text-white transition">About</Link>
+              <Link href="/usdoxcare" className="text-gray-400 hover:text-white transition">USDOXCare</Link>
+              <Link href="/twusd-tokenomics" className="text-gray-400 hover:text-white transition">TWUSD</Link>
             </div>
           </div>
         </div>

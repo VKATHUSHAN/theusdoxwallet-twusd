@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { USDOXWallet } from '@/wallet-architecture';
+import { USDOXWallet } from '@/lib/wallet';
 
 export default function Home() {
-  const [wallet, setWallet] = useState<USDOXWallet | null>(null);
+  const [wallet] = useState<USDOXWallet>(() => new USDOXWallet());
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [usdoBalance, setUsdoBalance] = useState('');
@@ -14,10 +14,8 @@ export default function Home() {
   const [newWalletData, setNewWalletData] = useState<{ address: string; privateKey: string; mnemonic: string } | null>(null);
 
   useEffect(() => {
-    const newWallet = new USDOXWallet();
-    newWallet.initializeReadOnly();
-    setWallet(newWallet);
-  }, []);
+    wallet.initializeReadOnly();
+  }, [wallet]);
 
   const handleConnectMetaMask = async () => {
     if (wallet) {

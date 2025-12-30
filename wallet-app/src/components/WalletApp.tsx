@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import React, { useState } from 'react';
 import { Wallet, ArrowRightLeft, Lock, ExternalLink, Copy, Check, Menu, X, AlertTriangle, ChevronRight, Info } from 'lucide-react';
 
 // --- Constants & Config ---
@@ -13,18 +14,9 @@ const LOGO_URLS = {
   USDO: "/usdo_logo.png"         // ✅ FIXED: Use relative path from /public folder for faster loading
 };
 
-// Minimal ABI for ERC20 Token interaction
-const ERC20_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function decimals() view returns (uint8)",
-  "function symbol() view returns (string)",
-  "function transfer(address to, uint amount) returns (bool)"
-];
-
 const WalletApp = () => {
   // --- State ---
   const [account, setAccount] = useState<string | null>(null);
-  const [chainId, setChainId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'swap' | 'vault'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [balances, setBalances] = useState({ twusd: '0.00', usdox: '0.00' });
@@ -40,10 +32,9 @@ const WalletApp = () => {
     
     setIsConnecting(true);
     try {
-      const accounts = await (window.ethereum as any).request({ method: 'eth_requestAccounts' });
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       setAccount(accounts[0]);
-      const chain = await (window.ethereum as any).request({ method: 'eth_chainId' });
-      setChainId(chain);
+      await window.ethereum.request({ method: 'eth_chainId' });
       
       // Mock fetching balances for demo purposes if we don't have a live provider setup in this specific file context
       // In a real deployment, you would use ethers.js or viem here.
@@ -64,7 +55,7 @@ const WalletApp = () => {
   const addTokenToWallet = async (tokenSymbol: string, address: string, image: string) => {
     if (!window.ethereum) return;
     try {
-      await (window.ethereum as any).request({
+      await window.ethereum.request({
         method: 'wallet_watchAsset',
         params: {
           type: 'ERC20',
@@ -95,7 +86,7 @@ const WalletApp = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
-            <img src={LOGO_URLS.USDOX} alt="USDOX" className="h-8 w-8 object-contain" />
+            <Image src={LOGO_URLS.USDOX} alt="USDOX" width={32} height={32} className="h-8 w-8 object-contain" />
             <span className="text-white font-bold text-xl tracking-tight">USDOX<span className="text-blue-500">CARE</span></span>
           </div>
 
@@ -212,7 +203,7 @@ const WalletApp = () => {
             <div>
               <p className="text-yellow-200 text-sm font-medium">Token Metadata Notice</p>
               <p className="text-slate-400 text-xs mt-1">
-                The TWUSD contract on Etherscan currently displays as "USDT". This is a known metadata mismatch. 
+                The TWUSD contract on Etherscan currently displays as &quot;USDT&quot;. This is a known metadata mismatch. 
                 The contract logic and peg are unaffected. Please verify the contract address ends in <span className="font-mono text-slate-300">...925d</span>.
               </p>
             </div>
@@ -232,13 +223,13 @@ const WalletApp = () => {
   const TokenCard = ({ symbol, name, balance, address, logo, isPegged }: { symbol: string; name: string; balance: string; address: string; logo: string; isPegged: boolean }) => (
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 relative overflow-hidden group hover:border-blue-500/50 transition-all">
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-        <img src={logo} alt="watermark" className="w-24 h-24" />
+        <Image src={logo} alt="watermark" width={96} height={96} className="w-24 h-24" />
       </div>
       
       <div className="relative z-10">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-slate-900 p-2 border border-slate-600">
-            <img src={logo} alt={symbol} className="w-full h-full object-contain" />
+            <Image src={logo} alt={symbol} width={48} height={48} className="w-full h-full object-contain" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-white">{symbol}</h3>
@@ -305,7 +296,7 @@ const WalletApp = () => {
               className="bg-transparent text-2xl text-white outline-none w-1/2" 
             />
             <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-              <img src={LOGO_URLS.TWUSD} className="w-5 h-5" alt="TWUSD" />
+              <Image src={LOGO_URLS.TWUSD} width={20} height={20} className="w-5 h-5" alt="TWUSD" />
               <span className="text-white font-medium text-sm">TWUSD</span>
               <ChevronRight size={14} className="text-slate-400" />
             </div>
@@ -332,7 +323,7 @@ const WalletApp = () => {
               className="bg-transparent text-2xl text-white outline-none w-1/2" 
             />
             <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
-              <img src={LOGO_URLS.USDOX} className="w-5 h-5" alt="USDOX" />
+              <Image src={LOGO_URLS.USDOX} width={20} height={20} className="w-5 h-5" alt="USDOX" />
               <span className="text-white font-medium text-sm">USDOX</span>
               <ChevronRight size={14} className="text-slate-400" />
             </div>

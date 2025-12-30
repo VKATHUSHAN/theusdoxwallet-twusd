@@ -48,8 +48,49 @@
 1. **Non-custodial Only**: Private keys NEVER leave client-side
 2. **Single Responsibility**: Each class has one clear purpose
 3. **Extensibility**: New networks/tokens via config objects
-4. **Type Safety**: TypeScript strict mode enforced
-5. **Browser Compatibility**: MetaMask detection for user safety
+4. **Extensibility**: New networks/tokens via config objects
+5. **Type Safety**: TypeScript strict mode enforced
+6. **Browser Compatibility**: MetaMask detection for user safety
+7. **Clean Architecture**: Separation between UI, wallet API, and blockchain operations
+
+**Extensibility Patterns**:
+
+**Adding Networks**:
+
+```typescript
+// Add to NETWORKS object
+polygon: {
+  chainId: 137,
+  name: 'Polygon',
+  rpcUrl: 'https://polygon-rpc.com/',
+  nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 }
+}
+```
+
+**Adding Tokens**:
+
+```typescript
+// Add to TOKENS[networkName]
+NEWTOKEN: {
+  address: '0x...actual_contract_address...',
+  decimals: 18, // or 6 for stablecoins like TWUSD
+  symbol: 'NEWTOKEN',
+  name: 'New Token Name'
+}
+```
+
+**Adding Wallet Methods**:
+
+```typescript
+// In USDOXWallet class
+async getNewTokenBalance(address?: string): Promise<string> {
+  return await this.blockchainService.getTokenBalance('NEWTOKEN', address);
+}
+
+async sendNewToken(recipient: string, amount: string): Promise<string> {
+  return await this.blockchainService.transferToken('NEWTOKEN', recipient, amount);
+}
+```
 
 ---
 
@@ -92,9 +133,37 @@ wallet-app/
 └── .env                               (← Environment variables (Vercel config))
 ```
 
-**Path Alias**: `@/*` resolves to `./src/*` (configured in tsconfig.json)
+### Multi-Page Application Structure
 
----
+**Navigation Pages**: Home (`/`), About, USDOXCare (`/usdoxcare`), TWUSD Tokenomics (`/twusd-tokenomics`)
+
+**Page Components**: Each page is a "use client" component with:
+
+- Shared header navigation with logo and menu
+- Tailwind CSS styling with dark theme (gray-950 background)
+- Next.js Image components for logos (external GitHub URLs)
+- Responsive design with mobile navigation
+
+**Example Page Structure**:
+
+```tsx
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+
+export default function PageName() {
+  return (
+    <div className="min-h-screen bg-gray-950 text-white">
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-gray-950/90 border-b border-gray-800">
+        {/* Navigation with logo and menu links */}
+      </header>
+      <main className="max-w-4xl mx-auto px-6 py-24">{/* Page content */}</main>
+    </div>
+  );
+}
+```
+
+**Logo Assets**: Stored in `public/` directory, referenced via GitHub raw URLs for consistency across deployments.
 
 ## 5. WALLET ARCHITECTURE DEEP DIVE
 
@@ -273,6 +342,15 @@ const txHash = await wallet.sendTWUSD(recipient, "100");
 
 - User inputs "100" → Internally becomes 100 × 10^6 = 100,000,000
 - Balance "123.456789" → Displays correctly (internal: 123456789)
+- **CRITICAL**: TWUSD uses 6 decimals, USDO uses 18 - always check token config
+
+**Decimal Validation Pattern**:
+
+```typescript
+// Always validate decimals from token config, never hardcode
+const tokenConfig = TOKENS[network][tokenSymbol];
+const amountInUnits = parseUnits(amountString, tokenConfig.decimals);
+```
 
 ### Pattern 4: Balance Queries
 
@@ -388,7 +466,30 @@ vercel --prod
 # Or push to GitHub—auto-deployment can be configured
 ```
 
----
+**Environment Variables** (`.env` file):
+
+- `VERCEL_ORG_ID` - Vercel team/organization ID for deployments
+- `VERCEL_PROJECT_ID` - Vercel project ID (optional but recommended)
+
+**Vercel Configuration** (`vercel.json`):
+
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ]
+}
+```
+
+**Deployment Notes**:
+
+- Uses `@vercel/next` builder for Next.js 16
+- Environment variables must be set in Vercel dashboard or `.env`
+- Logo images referenced via GitHub raw URLs (no local asset hosting needed)
 
 ## 9. COMMON DEVELOPMENT TASKS
 
@@ -539,6 +640,6 @@ vercel --prod      # Deploy to Vercel
 
 ---
 
-**Last Updated**: December 2025  
-**Version**: 1.0  
+**Last Updated**: December 30, 2025  
+**Version**: 1.1  
 **For AI Agents**: This guide provides complete context for understanding, extending, and debugging the USDOX Wallet App codebase.

@@ -3,12 +3,14 @@
 This is a secure, non-custodial EVM wallet application built for the USDOX ecosystem.
 
 ## Tech Stack
+
 - **Framework**: Next.js 14
 - **Styling**: Tailwind CSS
 - **Library**: ethers.js v6
 - **Deployment**: Vercel
 
 ## Setup
+
 1. Install dependencies:
    ```bash
    npm install
